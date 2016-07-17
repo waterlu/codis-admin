@@ -1,5 +1,5 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="en" data-ng-app="app">
 <head>
     <meta charset="UTF-8" />
     <meta http-equiv="X-UA-Compatible" content="IE=edge" />
@@ -9,134 +9,16 @@
     <link rel="stylesheet" href="static/vendor/bootstrap/css/bootstrap-theme.min.css" type="text/css" />
     <link rel="stylesheet" href="static/css/app.css" type="text/css" />
 </head>
-<body>
-    <nav class="navbar navbar-inverse navbar-fixed-top">
-        <div class="container">
-            <div class="navbar-header">
-              <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false" aria-controls="navbar">
-                <span class="sr-only">Toggle navigation</span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-                <span class="icon-bar"></span>
-              </button>
-              <a class="navbar-brand" href="#">Codis Admin</a>
-            </div>
-            <div id="navbar" class="collapse navbar-collapse">
-              <ul class="nav navbar-nav">
-                <li ui-sref-active="active"><a ui-sref=".codis">Codis Info</a></li>
-                <li ui-sref-active="active"><a ui-sref=".redis">Redis Data</a></li>
-                <li ui-sref-active="active"><a ui-sref=".about">About</a></li>
-              </ul>
-            </div>
-        </div>
-    </nav>
-    <div class="container">
-        <div class="starter-template">
-            <div class="row">
-              <div class="col-md-8">
-                <form class="form-horizontal">
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label">Database</label>
-                        <div class="col-sm-10">
-                            <select class="form-control" ng-model="db">
-                                <option>0</option>
-                                <option>1</option>
-                                <option>2</option>
-                                <option>3</option>
-                                <option>4</option>
-                                <option>5</option>
-                                <option>6</option>
-                                <option>7</option>
-                                <option>8</option>
-                                <option>9</option>
-                                <option>10</option>
-                                <option>11</option>
-                                <option>12</option>
-                                <option>13</option>
-                                <option>14</option>
-                                <option>15</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label class="col-sm-2 control-label">Type</label>
-                        <div class="col-sm-10">
-                            <select class="form-control" ng-model="type">
-                                <option>string</option>
-                                <option>set</option>
-                                <option>list</option>
-                                <option>hash</option>
-                                <option>zset</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="key" class="col-sm-2 control-label">Key</label>
-                        <div class="col-sm-10">
-                            <input id="key" type="text" class="form-control" placeholder="Please input redis key here ...">
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <button type="submit" class="btn btn-default">Search Redis Data</button>
-                        </div>
-                    </div>
-                </form>
-                <div class="col-md-12">
-                    <h4>Search Results</h4>
-                    <table class="table table-bordered">
-                        <thead>
-                            <tr>
-                                <th>Key</th>
-                                <th>Command</th>
-                                <th>Value</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            <tr>
-                                <td><p>result.key</p></td>
-                                <td><p>result.command</p></td>
-                                <td><p>result.value</p></td>
-                            </tr>
-                        </tbody>
-                    </table>
-                </div>
-                </div>
-              <div class="col-md-4">
-{#                <h2>Codis Information</h2>#}
-                {% for group in groups %}
-                <div class="panel panel-info">
-                    <div class="panel-heading">
-                        Group_{{ group.get_id() }}
-                    </div>
-                    <div class="panel-body">
-                        <table class="table table-bordered">
-                            <thead>
-                                <tr>
-                                    <th>GroupId</th>
-                                    <th>Address</th>
-                                    <th>Type</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                {% for server in group.get_server_info() %}
-                                    <tr>
-                                        <td>{{ server.get_group_id() }}</td>
-                                        <td>{{ server.get_server_addr() }}</td>
-                                        <td>{{ server.get_server_type() }}</td>
-                                    </tr>
-                                {% endfor %}
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-                {% endfor %}
-              </div>
-            </div>
-        </div>
-    </div>
-
+<body ng-controller="AppCtrl">
+    <div class="app" ui-view ></div>
     <script src="/static/vendor/jquery/jquery-1.11.2.min.js"></script>
     <script src="/static/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/static/vendor/angular/angular.js"></script>
+    <script src="/static/vendor/angular/angular-ui-router.js"></script>
+    <script src="/static/js/app.js"></script>
+    <script src="/static/js/router.js"></script>
+    <script src="/static/js/controllers/codis.js"></script>
+    <script src="/static/js/controllers/redis.js"></script>
+    <script src="/static/js/controllers/about.js"></script>
 </body>
 </html>

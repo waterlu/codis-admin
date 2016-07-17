@@ -1,0 +1,58 @@
+<div class="col-md-12">
+    <h4>Proxy Status
+        <button ng-click="refreshProxy()" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-refresh"></span>
+        </button>
+    </h4>
+    <table class="table table-bordered">
+        <thead>
+            <tr>
+                <th>Proxy Id</th>
+                <th>Proxy Address</th>
+                <th>Proxy Debug Address</th>
+                <th>Proxy State</th>
+            </tr>
+        </thead>
+        <tbody>
+            <tr ng-repeat="proxy in proxies">
+                <td><p>{{proxy.id}}</p></td>
+                <td><p>{{proxy.addr}}</p></td>
+                <td><a href="http://{{proxy.debug_addr}}/debug/vars">{{proxy.debug_addr}}</a></td>
+                <td ng-switch="proxy.state">
+                    <span class="label label-success" ng-switch-when="online">{{proxy.state}}</span>
+                    <span class="label label-info" ng-switch-default>{{proxy.state}}</span>
+                </td>
+            </tr>
+        </tbody>
+    </table>
+</div>
+<div class="col-md-12">
+    <h4>Codis Server Groups
+        <button ng-click="refreshServer()" class="btn btn-default btn-sm">
+            <span class="glyphicon glyphicon-refresh"></span>
+        </button>
+    </h4>
+    <div class="panel panel-info" ng-repeat="group in groups | orderBy:'id'">
+        <div class="panel-heading">
+            <b>Group_{{group.id}}</b>
+        </div>
+        <div class="panel-body">
+            <table class="table table-bordered">
+                <thead>
+                    <tr>
+                        <th>Group Id</th>
+                        <th>Server Type</th>
+                        <th>Server Address</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <tr ng-repeat="server in group.servers">
+                        <td><p>{{server.id}}</p></td>
+                        <td><p>{{server.type}}</p></td>
+                        <td><p>{{server.addr}}</p></td>
+                    </tr>
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

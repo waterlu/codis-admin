@@ -36,9 +36,31 @@ class GroupInfo(object):
         return self.server_info
 
 
+class ProxyInfo(object):
+    def __init__(self, proxy_id, proxy_addr, proxy_debug_var_addr, proxy_state):
+        self.proxy_id = proxy_id
+        self.proxy_addr = proxy_addr
+        self.proxy_debug_var_addr = proxy_debug_var_addr
+        self.proxy_state = proxy_state
+
+    def get_proxy_id(self):
+        return self.proxy_id
+
+    def get_proxy_addr(self):
+        return self.proxy_addr
+
+    def get_proxy_debug_addr(self):
+        return self.proxy_debug_var_addr
+
+    def get_proxy_state(self):
+        return self.proxy_state
+
+
 class CodisInfo(object):
     def __init__(self):
         self.group_info = []
+        self.proxy_info = []
+        self.init = False
 
     def add_codis_server(self, group_id, server_type, server_addr):
         group_info = None
@@ -55,3 +77,16 @@ class CodisInfo(object):
 
     def get_group_info(self):
         return self.group_info
+
+    def add_proxy(self, proxy_id, proxy_addr, proxy_debug_var_addr, proxy_state):
+        proxy_info = ProxyInfo(proxy_id, proxy_addr, proxy_debug_var_addr, proxy_state)
+        self.proxy_info.append(proxy_info)
+
+    def get_proxy_info(self):
+        return self.proxy_info
+
+    def has_init(self):
+        return self.init
+
+    def init_done(self):
+        self.init = True
