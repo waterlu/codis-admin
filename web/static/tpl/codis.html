@@ -15,7 +15,8 @@
                     <button type="submit" class="btn btn-primary" ng-click="search(key)">Search Key</button>
                 </form>
                 <br/>
-                <table st-table="search_result_collection" class="table table-striped">
+                <toaster-container toaster-options="{'time-out': 3000, 'position-class': 'toast-top-center', 'close-button':true}" ></toaster-container>
+                <table ng-if="search_result_keys.length > 0" st-table="displayedCollection" st-safe-src="search_result_keys" class="table table-striped">
                     <thead>
                         <tr>
                             <th>Key</th>
@@ -25,36 +26,26 @@
                         </tr>
                     </thead>
                     <tbody>
-                        <tr ng-repeat="row in search_result_collection">
+                        <tr ng-repeat="row in displayedCollection">
                             <td><p>{{row.key}}</p></td>
                             <td><p>{{row.group}}</p></td>
                             <td><p>{{row.addr}}</p></td>
                             <td>
-                                <button class="btn btn-danger" ng-click="fill(row)">Select</button>
+                                <button class="btn btn-sm btn-danger" ng-click="select(row)">Select</button>
                             </td>
                         </tr>
                     </tbody>
-                </table>
-                <!--table ng-if="search_result_keys.length > 0" class="table table-striped">
-                    <thead>
+                    <tfoot>
                         <tr>
-                            <th>Key</th>
-                            <th>Group</th>
-                            <th>Addr</th>
-                            <th>Operation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr ng-repeat="result in search_result_keys">
-                            <td><p>{{result.key}}</p></td>
-                            <td><p>{{result.group}}</p></td>
-                            <td><p>{{result.addr}}</p></td>
-                            <td>
-                                <button class="btn btn-danger" ng-click="fill(result)">Select</button>
+                            <td class="text-left">
+                                {{ search_result_count }} key found
+                            </td>
+                            <td colspan="3" class="text-right">
+                                <div st-pagination="" st-items-by-page="search_result_item_per_Page" st-displayed-pages="5"></div>
                             </td>
                         </tr>
-                    </tbody>
-                </table-->
+                    </tfoot>
+                </table>
             </div>
         </div>
         <div class="panel panel-primary">
@@ -78,11 +69,35 @@
                         </div>
                     </div>
                     <div class="form-group">
+                        <label for="redis_type" class="col-sm-2 control-label">Type</label>
+                        <div class="col-sm-10">
+                            <select id="redis_type" class="form-control" ng-model="redis_type">
+                                <option>string</option>
+                                <option>list</option>
+                                <option>set</option>
+                                <option>zset</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
                         <div class="col-sm-offset-2 col-sm-10">
-                            <button type="submit" class="btn btn-primary" ng-click="get_value()">Search Value</button>
+                            <button type="submit" class="btn btn-primary" ng-click="search_value()">Search Value</button>
                         </div>
                     </div>
                 </form>
+
+                <table ng-if="redis_value.length > 0" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Key = {{ redis_key }}</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr>
+                            <td><p>{{ redis_value }}</p></td>
+                        </tr>
+                    </tbody>
+                </table>
             </div>
         </div>
     </div>

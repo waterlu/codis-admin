@@ -35,6 +35,12 @@ class GroupInfo(object):
     def get_server_info(self):
         return self.server_info
 
+    def find_group_id(self, addr):
+        for server_info in self.server_info:
+            if server_info.get_server_addr() == addr:
+                return server_info.get_group_id()
+        return -1
+
 
 class ProxyInfo(object):
     def __init__(self, proxy_id, proxy_addr, proxy_debug_var_addr, proxy_state):
@@ -90,3 +96,10 @@ class CodisInfo(object):
 
     def init_done(self):
         self.init = True
+
+    def find_group_id(self, addr):
+        for group_info in self.group_info:
+            group_id = group_info.find_group_id(addr)
+            if group_id > 0:
+                return group_id
+        return -1

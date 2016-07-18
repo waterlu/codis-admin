@@ -63,6 +63,13 @@ class RedisClient(object):
                 key_list.append(redis_key)
         return key_list
 
+    def get_key_type(self, group_id, search_key):
+        client = self.redis_client[group_id]
+        return client.type(search_key)
+
+    def get_string_value(self, group_id, search_key):
+        client = self.redis_client[group_id]
+        return client.get(search_key)
 
 
 

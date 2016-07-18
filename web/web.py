@@ -9,8 +9,7 @@ app = Flask(__name__)
 zk_addr = "60.205.59.69:2181"
 product_name = "test"
 use_proxy_ip = True
-key_list = []
-max_in_one_page = 5
+search_max_count = 50
 
 codis_info = CodisInfo()
 redis_client = RedisClient(use_proxy_ip)
@@ -57,17 +56,36 @@ def codis_proxy():
 
 @app.route('/api/search/<key>')
 def search(key):
+    key_list = []
+    count = 0
+    if len(key) < 5:
+        return jsonify({'data': key_list, 'count': count, 'errorCode': 1,
+                        'errorMsg': 'The key must contain at least 5 characters'})
+
+    if key.find("*") >= 0:
+        return jsonify({'data': key_list, 'count': count, 'errorCode': 2,
+                        'errorMsg': 'The key must not contain *'})
+
     key_list = redis_client.get_key(key)
     count = len(key_list)
-    if count > max_in_one_page:
-        page = count / max_in_one_page
-        if count % max_in_one_page != 0:
-            page = page + 1
-        return jsonify({'data':key_list[0 : 5], 'page':page})
+    if count > search_max_count:
+        return jsonify({'data': key_list[0:search_max_count], 'count': count, 'errorCode': '0'})
     else:
-        return jsonify({'data':key_list[0 : 5], 'page':1})
-    # key_info_json = json.dumps(key_list)
-    # return key_info_json
+        return jsonify({'data': key_list, 'count': count, 'errorCode': '0'})
+
+
+@app.route('/api/type/<addr>/<key>')
+def type(addr, key):
+    group_id = codis_info.find_group_id(addr)
+    type = redis_client.get_key_type(group_id, key)
+    return jsonify({'type': type, 'errorCode': '0'})
+
+
+@app.route('/api/string/get/<addr>/<key>')
+def string_get(addr, key):
+    group_id = codis_info.find_group_id(addr)
+    value = redis_client.get_string_value(group_id, key)
+    return jsonify({'value': value, 'errorCode': '0'})
 
 
 @app.route('/api/redis')
