@@ -1,114 +1,11 @@
-<div class="row" xmlns="http://www.w3.org/1999/html">
-    <div class="col-md-7">
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <b>Search Key in Redis</b>
-            </div>
-            <div class="panel-body">
-               <form class="form-inline">
-                    <div class="form-group">
-                        <div class="input-group">
-                            <div class="input-group-addon">@</div>
-                            <input type="text" class="form-control" id="key" placeholder="Please input key here ..." ng-model="key">
-                        </div>
-                    </div>
-                    <button type="submit" class="btn btn-primary" ng-click="search(key)">Search Key</button>
-                </form>
-                <br/>
-                <toaster-container toaster-options="{'time-out': 3000, 'position-class': 'toast-top-center', 'close-button':true}" ></toaster-container>
-                <table ng-if="search_result_keys.length > 0" st-table="displayedCollection" st-safe-src="search_result_keys" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Key</th>
-                            <th>Group</th>
-                            <th>Addr</th>
-                            <th>Operation</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr ng-repeat="row in displayedCollection">
-                            <td><p>{{row.key}}</p></td>
-                            <td><p>{{row.group}}</p></td>
-                            <td><p>{{row.addr}}</p></td>
-                            <td>
-                                <button class="btn btn-sm btn-danger" ng-click="select(row)">Select</button>
-                            </td>
-                        </tr>
-                    </tbody>
-                    <tfoot>
-                        <tr>
-                            <td class="text-left">
-                                {{ search_result_count }} key found
-                            </td>
-                            <td colspan="3" class="text-right">
-                                <div st-pagination="" st-items-by-page="search_result_item_per_Page" st-displayed-pages="5"></div>
-                            </td>
-                        </tr>
-                    </tfoot>
-                </table>
-            </div>
-        </div>
-        <div class="panel panel-primary">
-            <div class="panel-heading">
-                <b>Search Value in Redis</b>
-            </div>
-            <div class="panel-body">
-                <form class="form-horizontal">
-                    <div class="form-group">
-                        <label for="redis_slave" class="col-sm-2 control-label">Server</label>
-                        <div class="col-sm-10">
-                            <select id="redis_slave" class="form-control" ng-model="redis_slave">
-                                <option ng-repeat="slave in slaves">{{ slave }}</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="redis_key" class="col-sm-2 control-label">Key</label>
-                        <div class="col-sm-10">
-                            <input type="text" class="form-control" id="redis_key" ng-model="redis_key"/>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <label for="redis_type" class="col-sm-2 control-label">Type</label>
-                        <div class="col-sm-10">
-                            <select id="redis_type" class="form-control" ng-model="redis_type">
-                                <option>string</option>
-                                <option>list</option>
-                                <option>set</option>
-                                <option>zset</option>
-                            </select>
-                        </div>
-                    </div>
-                    <div class="form-group">
-                        <div class="col-sm-offset-2 col-sm-10">
-                            <button type="submit" class="btn btn-primary" ng-click="search_value()">Search Value</button>
-                        </div>
-                    </div>
-                </form>
-
-                <table ng-if="redis_value.length > 0" class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Key = {{ redis_key }}</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr>
-                            <td><p>{{ redis_value }}</p></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
-    </div>
-
-    <div class="col-md-5">
+<div class="row">
+    <div class="col-md-12">
         <h4>Proxy Status
             <button ng-click="refreshProxy()" class="btn btn-default btn-sm">
                 <span class="glyphicon glyphicon-refresh"></span>
             </button>
         </h4>
-        <table class="table table-bordered">
+        <table class="table table-striped">
             <thead>
                 <tr>
                     <th>Id</th>
@@ -134,12 +31,12 @@
                 <span class="glyphicon glyphicon-refresh"></span>
             </button>
         </h4>
-        <div class="panel panel-info" ng-repeat="group in groups | orderBy:'id'">
+        <div class="panel panel-primary" ng-repeat="group in groups | orderBy:'id'">
             <div class="panel-heading">
                 <b>Group_{{group.id}}</b>
             </div>
             <div class="panel-body">
-                <table class="table table-bordered">
+                <table class="table table-striped">
                     <thead>
                         <tr>
                             <th>Group</th>

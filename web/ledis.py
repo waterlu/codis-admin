@@ -71,6 +71,11 @@ class RedisClient(object):
         client = self.redis_client[group_id]
         return client.get(search_key)
 
+    def get_zset_zcard(self, group_id, search_key):
+        client = self.redis_client[group_id]
+        return client.zcard(search_key)
 
-
+    def get_zset_zrange(self, group_id, search_key, start, stop):
+        client = self.redis_client[group_id]
+        return client.zrange(search_key, start, stop)
 

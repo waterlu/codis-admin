@@ -21,6 +21,20 @@ def index():
     return render_template('index.html')
 
 
+@app.route('/api/proxy')
+def codis_proxy():
+    proxy_list = []
+    for proxy_info in codis_info.get_proxy_info():
+        proxy = {}
+        proxy['id'] = proxy_info.get_proxy_id()
+        proxy['addr'] = proxy_info.get_proxy_addr()
+        proxy['debug_addr'] = proxy_info.get_proxy_debug_addr()
+        proxy['state'] = proxy_info.get_proxy_state()
+        proxy_list.append(proxy)
+    proxy_info_json = json.dumps(proxy_list)
+    return proxy_info_json
+
+
 @app.route('/api/groups')
 def codis_groups():
     group_list = []
@@ -40,18 +54,10 @@ def codis_groups():
     return group_info_json
 
 
-@app.route('/api/proxy')
-def codis_proxy():
-    proxy_list = []
-    for proxy_info in codis_info.get_proxy_info():
-        proxy = {}
-        proxy['id'] = proxy_info.get_proxy_id()
-        proxy['addr'] = proxy_info.get_proxy_addr()
-        proxy['debug_addr'] = proxy_info.get_proxy_debug_addr()
-        proxy['state'] = proxy_info.get_proxy_state()
-        proxy_list.append(proxy)
-    proxy_info_json = json.dumps(proxy_list)
-    return proxy_info_json
+@app.route('/api/redis')
+def slaves():
+    redis_info_json = json.dumps(redis_client.get_redis_info())
+    return redis_info_json
 
 
 @app.route('/api/search/<key>')
@@ -69,29 +75,56 @@ def search(key):
     key_list = redis_client.get_key(key)
     count = len(key_list)
     if count > search_max_count:
-        return jsonify({'data': key_list[0:search_max_count], 'count': count, 'errorCode': '0'})
+        return jsonify({'data': key_list[0:search_max_count], 'count': count, 'errorCode': 0})
     else:
-        return jsonify({'data': key_list, 'count': count, 'errorCode': '0'})
+        return jsonify({'data': key_list, 'count': count, 'errorCode': 0})
 
 
 @app.route('/api/type/<addr>/<key>')
 def type(addr, key):
     group_id = codis_info.find_group_id(addr)
     type = redis_client.get_key_type(group_id, key)
-    return jsonify({'type': type, 'errorCode': '0'})
+    return jsonify({'type': type, 'errorCode': 0})
 
 
 @app.route('/api/string/get/<addr>/<key>')
 def string_get(addr, key):
-    group_id = codis_info.find_group_id(addr)
-    value = redis_client.get_string_value(group_id, key)
-    return jsonify({'value': value, 'errorCode': '0'})
+    try:
+        group_id = codis_info.find_group_id(addr)
+        value = redis_client.get_string_value(group_id, key)
+        return jsonify({'value': value, 'errorCode': 0})
+    except Exception as e:
+        print e
+        return jsonify({'value': "", 'errorCode': 99, 'errorMsg': e})
 
 
-@app.route('/api/redis')
-def slaves():
-    redis_info_json = json.dumps(redis_client.get_redis_info())
-    return redis_info_json
+@app.route('/api/zset/zcard/<addr>/<key>')
+def zset_zcard(addr, key):
+    try:
+        group_id = codis_info.find_group_id(addr)
+        value = redis_client.get_zset_zcard(group_id, key)
+        return jsonify({'value': value, 'errorCode': 0})
+    except Exception as e:
+        print e
+        return jsonify({'value': "", 'errorCode': 99, 'errorMsg': e})
+
+
+@app.route('/api/zset/zrange/<addr>/<key>/<start>/<stop>')
+def zset_zrange(addr, key, start, stop):
+    try:
+        group_id = codis_info.find_group_id(addr)
+        data = redis_client.get_zset_zrange(group_id, key, start, stop)
+        list = []
+        for value in data:
+            list.append(unicode(value , errors='ignore'))
+            # row = {}
+            # row['data'] = unicode(value , errors='ignore')
+            # list.append(row)
+        return jsonify({'value': list, 'errorCode': 0})
+    except Exception as e:
+        print e
+        return jsonify({'value': "", 'errorCode': 99, 'errorMsg': e})
+
 
 def init_codis_info():
     if codis_info.has_init():

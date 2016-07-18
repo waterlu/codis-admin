@@ -21,11 +21,11 @@ angular.module('app')
                     templateUrl: 'static/tpl/codis.html',
                     controller: 'CodisController'
                 })
-                // .state('app.redis', {
-                //     url: '/redis',
-                //     templateUrl: 'static/tpl/redis.html',
-                //     controller: 'RedisController'
-                // })
+                .state('app.redis', {
+                    url: '/redis',
+                    templateUrl: 'static/tpl/redis.html',
+                    controller: 'RedisController'
+                })
                 .state('app.setting', {
                     url: '/setting',
                     templateUrl: 'static/tpl/setting.html',
