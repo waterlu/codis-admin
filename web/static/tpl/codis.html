@@ -1,58 +1,146 @@
-<div class="col-md-12">
-    <h4>Proxy Status
-        <button ng-click="refreshProxy()" class="btn btn-default btn-sm">
-            <span class="glyphicon glyphicon-refresh"></span>
-        </button>
-    </h4>
-    <table class="table table-bordered">
-        <thead>
-            <tr>
-                <th>Proxy Id</th>
-                <th>Proxy Address</th>
-                <th>Proxy Debug Address</th>
-                <th>Proxy State</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr ng-repeat="proxy in proxies">
-                <td><p>{{proxy.id}}</p></td>
-                <td><p>{{proxy.addr}}</p></td>
-                <td><a href="http://{{proxy.debug_addr}}/debug/vars">{{proxy.debug_addr}}</a></td>
-                <td ng-switch="proxy.state">
-                    <span class="label label-success" ng-switch-when="online">{{proxy.state}}</span>
-                    <span class="label label-info" ng-switch-default>{{proxy.state}}</span>
-                </td>
-            </tr>
-        </tbody>
-    </table>
-</div>
-<div class="col-md-12">
-    <h4>Codis Server Groups
-        <button ng-click="refreshServer()" class="btn btn-default btn-sm">
-            <span class="glyphicon glyphicon-refresh"></span>
-        </button>
-    </h4>
-    <div class="panel panel-info" ng-repeat="group in groups | orderBy:'id'">
-        <div class="panel-heading">
-            <b>Group_{{group.id}}</b>
+<div class="row" xmlns="http://www.w3.org/1999/html">
+    <div class="col-md-7">
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <b>Search Key in Redis</b>
+            </div>
+            <div class="panel-body">
+               <form class="form-inline">
+                    <div class="form-group">
+                        <div class="input-group">
+                            <div class="input-group-addon">@</div>
+                            <input type="text" class="form-control" id="key" placeholder="Please input key here ..." ng-model="key">
+                        </div>
+                    </div>
+                    <button type="submit" class="btn btn-primary" ng-click="search(key)">Search Key</button>
+                </form>
+                <br/>
+                <table st-table="search_result_collection" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Group</th>
+                            <th>Addr</th>
+                            <th>Operation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="row in search_result_collection">
+                            <td><p>{{row.key}}</p></td>
+                            <td><p>{{row.group}}</p></td>
+                            <td><p>{{row.addr}}</p></td>
+                            <td>
+                                <button class="btn btn-danger" ng-click="fill(row)">Select</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table>
+                <!--table ng-if="search_result_keys.length > 0" class="table table-striped">
+                    <thead>
+                        <tr>
+                            <th>Key</th>
+                            <th>Group</th>
+                            <th>Addr</th>
+                            <th>Operation</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="result in search_result_keys">
+                            <td><p>{{result.key}}</p></td>
+                            <td><p>{{result.group}}</p></td>
+                            <td><p>{{result.addr}}</p></td>
+                            <td>
+                                <button class="btn btn-danger" ng-click="fill(result)">Select</button>
+                            </td>
+                        </tr>
+                    </tbody>
+                </table-->
+            </div>
         </div>
-        <div class="panel-body">
-            <table class="table table-bordered">
-                <thead>
-                    <tr>
-                        <th>Group Id</th>
-                        <th>Server Type</th>
-                        <th>Server Address</th>
-                    </tr>
-                </thead>
-                <tbody>
-                    <tr ng-repeat="server in group.servers">
-                        <td><p>{{server.id}}</p></td>
-                        <td><p>{{server.type}}</p></td>
-                        <td><p>{{server.addr}}</p></td>
-                    </tr>
-                </tbody>
-            </table>
+        <div class="panel panel-primary">
+            <div class="panel-heading">
+                <b>Search Value in Redis</b>
+            </div>
+            <div class="panel-body">
+                <form class="form-horizontal">
+                    <div class="form-group">
+                        <label for="redis_slave" class="col-sm-2 control-label">Server</label>
+                        <div class="col-sm-10">
+                            <select id="redis_slave" class="form-control" ng-model="redis_slave">
+                                <option ng-repeat="slave in slaves">{{ slave }}</option>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <label for="redis_key" class="col-sm-2 control-label">Key</label>
+                        <div class="col-sm-10">
+                            <input type="text" class="form-control" id="redis_key" ng-model="redis_key"/>
+                        </div>
+                    </div>
+                    <div class="form-group">
+                        <div class="col-sm-offset-2 col-sm-10">
+                            <button type="submit" class="btn btn-primary" ng-click="get_value()">Search Value</button>
+                        </div>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-5">
+        <h4>Proxy Status
+            <button ng-click="refreshProxy()" class="btn btn-default btn-sm">
+                <span class="glyphicon glyphicon-refresh"></span>
+            </button>
+        </h4>
+        <table class="table table-bordered">
+            <thead>
+                <tr>
+                    <th>Id</th>
+                    <th>Address</th>
+                    <th>Debug</th>
+                    <th>State</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="proxy in proxies">
+                    <td><p>{{proxy.id}}</p></td>
+                    <td><p>{{proxy.addr}}</p></td>
+                    <td><a href="http://{{proxy.debug_addr}}/debug/vars">{{proxy.debug_addr}}</a></td>
+                    <td ng-switch="proxy.state">
+                        <span class="label label-success" ng-switch-when="online">{{proxy.state}}</span>
+                        <span class="label label-info" ng-switch-default>{{proxy.state}}</span>
+                    </td>
+                </tr>
+            </tbody>
+        </table>
+        <h4>Codis Server Groups
+            <button ng-click="refreshServer()" class="btn btn-default btn-sm">
+                <span class="glyphicon glyphicon-refresh"></span>
+            </button>
+        </h4>
+        <div class="panel panel-info" ng-repeat="group in groups | orderBy:'id'">
+            <div class="panel-heading">
+                <b>Group_{{group.id}}</b>
+            </div>
+            <div class="panel-body">
+                <table class="table table-bordered">
+                    <thead>
+                        <tr>
+                            <th>Group</th>
+                            <th>Type</th>
+                            <th>Address</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr ng-repeat="server in group.servers">
+                            <td><p>{{server.id}}</p></td>
+                            <td><p>{{server.type}}</p></td>
+                            <td><p>{{server.addr}}</p></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
         </div>
     </div>
 </div>

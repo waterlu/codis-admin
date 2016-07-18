@@ -4,6 +4,13 @@ angular.module('app').controller('CodisController', ['$scope', '$http', '$state'
     console.log('CodisController');
     $scope.proxies = {};
     $scope.groups = {};
+    $scope.slaves = {};
+    $scope.search_result_keys = {};
+    $scope.search_result_collection = [];
+
+    $scope.redis_slave = "";
+    $scope.redis_key = "";
+
 
     $scope.refreshProxy = function() {
         $http.get('/api/proxy').success(function(data) {
@@ -21,6 +28,30 @@ angular.module('app').controller('CodisController', ['$scope', '$http', '$state'
         }).error(function(data){
             console.log('error:' + data);
         });
+
+        $http.get('/api/redis').success(function(data) {
+            $scope.slaves = data;
+            console.log('$scope.slaves=' + $scope.slaves);
+        }).error(function(data){
+            console.log('error:' + data);
+        });
+    }
+    
+    $scope.search = function(key) {
+        $scope.keys = {};
+        $http.get('/api/search/' + key).success(function(data) {
+            $scope.search_result_collection = data.data;
+            $scope.search_result_page = data.page;
+            console.log('$scope.search_result_collection=' + $scope.search_result_collection);
+            console.log('$scope.search_result_page=' + $scope.search_result_page);
+        }).error(function(data){
+            console.log('error:' + data);
+        });
+    }
+    
+    $scope.fill = function (search_key) {
+        $scope.redis_slave = search_key.addr;
+        $scope.redis_key = search_key.key;
     }
 
     $scope.refreshProxy();
