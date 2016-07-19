@@ -92,6 +92,7 @@ def string_get(addr, key):
     try:
         group_id = codis_info.find_group_id(addr)
         value = redis_client.get_string_value(group_id, key)
+        value = unicode(value, errors='ignore')
         return jsonify({'value': value, 'errorCode': 0})
     except Exception as e:
         print e
@@ -144,7 +145,7 @@ def set_srandmember(addr, key, count):
         data = redis_client.get_set_srandmember(group_id, key, count)
         list = []
         for value in data:
-            list.append(unicode(value , errors='ignore'))
+            list.append(unicode(value, errors='ignore'))
         return jsonify({'value': list, 'errorCode': 0})
     except Exception as e:
         print e
@@ -158,7 +159,7 @@ def set_smembers(addr, key):
         data = redis_client.get_set_smembers(group_id, key)
         list = []
         for value in data:
-            list.append(unicode(value , errors='ignore'))
+            list.append(unicode(value, errors='ignore'))
         return jsonify({'value': list, 'errorCode': 0})
     except Exception as e:
         print e

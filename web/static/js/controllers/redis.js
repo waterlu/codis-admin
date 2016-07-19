@@ -77,6 +77,9 @@ angular.module('app').controller('RedisController', ['$scope', '$http', '$state'
         $http.get('/api/string/get/' + $scope.redis_slave + '/' + $scope.redis_key).success(function (data) {
             $scope.redis_value = data.value;
             console.log('$scope.redis_value=' + $scope.redis_value);
+            if ($scope.redis_value.length == 0) {
+                toaster.pop('info', "", "The value is empty.");
+            }
         }).error(function (data) {
             console.log('error:' + data);
         });
