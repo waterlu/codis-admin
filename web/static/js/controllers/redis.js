@@ -3,7 +3,6 @@
 angular.module('app').controller('RedisController', ['$scope', '$http', '$state', 'toaster', function ($scope, $http, $state, toaster) {
     console.log('RedisController');
 
-    $scope.slaves = {};
     $scope.search_result_keys = [];
     $scope.search_result_count = 0;
     $scope.search_result_item_per_Page = 10;
@@ -14,6 +13,7 @@ angular.module('app').controller('RedisController', ['$scope', '$http', '$state'
     $scope.redis_value = "";
     $scope.redis_start = 0;
     $scope.redis_stop = -1;
+    $scope.redis_count = 1;
 
     $scope.row_status = [];
     for (var i = 0; i < $scope.search_result_item_per_Page; i++) {
@@ -61,6 +61,9 @@ angular.module('app').controller('RedisController', ['$scope', '$http', '$state'
                     $scope.redis_start = 0;
                     $scope.redis_stop = -1;
                 }
+                else if ($scope.redis_type == 'set') {
+                    $scope.redis_count = 1;
+                }
                 $scope.resetRowStatus(index);
                 $scope.row_status[index] = !$scope.row_status[index]
             }).error(function (data) {
@@ -92,6 +95,38 @@ angular.module('app').controller('RedisController', ['$scope', '$http', '$state'
 
     $scope.zset_zcard = function () {
         $http.get('/api/zset/zcard/' + $scope.redis_slave + '/' + $scope.redis_key).success(function (data) {
+            $scope.redis_value = data.value;
+            console.log('$scope.redis_value=' + $scope.redis_value);
+        }).error(function (data) {
+            console.log('error:' + data);
+            toaster.pop('error', "", data);
+        });
+    }
+
+    $scope.set_srandmember = function () {
+        $http.get('/api/set/srandmember/' + $scope.redis_slave + '/' + $scope.redis_key + '/' + $scope.redis_count)
+            .success(function (data) {
+            $scope.redis_value = data.value;
+            console.log('$scope.redis_value=' + $scope.redis_value);
+        }).error(function (data) {
+            console.log('error:' + data);
+            toaster.pop('error', "", data);
+        });
+    }
+
+    $scope.set_smembers = function () {
+        $http.get('/api/set/smembers/' + $scope.redis_slave + '/' + $scope.redis_key)
+            .success(function (data) {
+            $scope.redis_value = data.value;
+            console.log('$scope.redis_value=' + $scope.redis_value);
+        }).error(function (data) {
+            console.log('error:' + data);
+            toaster.pop('error', "", data);
+        });
+    }
+
+    $scope.set_scard = function (count) {
+        $http.get('/api/set/scard/' + $scope.redis_slave + '/' + $scope.redis_key).success(function (data) {
             $scope.redis_value = data.value;
             console.log('$scope.redis_value=' + $scope.redis_value);
         }).error(function (data) {

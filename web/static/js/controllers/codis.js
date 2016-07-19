@@ -4,6 +4,7 @@ angular.module('app').controller('CodisController', ['$scope', '$http', '$state'
     console.log('CodisController');
     $scope.proxies = {};
     $scope.groups = {};
+    $scope.slaves = {};
 
     $scope.refreshProxy = function() {
         $http.get('/api/proxy').success(function(data) {

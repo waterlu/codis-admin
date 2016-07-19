@@ -28,7 +28,8 @@
         <td><p>{{ row.group }}</p></td>
         <td><p>{{ row.addr }}</p></td>
         <td>
-            <button class="btn btn-sm btn-danger" ng-click="select($index, row)">Show</button>
+            <button ng-if="row_status[$index]" class="btn btn-sm btn-primary" ng-click="select($index, row)">Show</button>
+            <button ng-if="!row_status[$index]" class="btn btn-sm btn-success" ng-click="select($index, row)">Hide</button>
         </td>
     </tr>
     <tr ng-repeat-end="">
@@ -68,7 +69,7 @@
                             </form>
                         </div>
                         <div class="col-md-5">
-                            {{ redis_value }}
+                            <p style="word-wrap:break-word; white-space:normal; word-break:break-all;bridth:500px;">{{ redis_value }}</p>
                         </div>
                     </div>
                 </div>
@@ -100,13 +101,15 @@
                                 <div class="form-group">
                                     <label for="redis_start" class="col-sm-2 control-label">Start</label>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" id="redis_start" ng-model="redis_start" />
+                                        <input type="number" class="form-control" id="redis_start" ng-model="redis_start"
+                                                readonly/>
                                     </div>
                                 </div>
                                 <div class="form-group">
                                     <label for="redis_stop" class="col-sm-2 control-label">Stop</label>
                                     <div class="col-sm-9">
-                                        <input type="text" class="form-control" id="redis_stop" ng-model="redis_stop" />
+                                        <input type="number" class="form-control" id="redis_stop" ng-model="redis_stop"
+                                                readonly/>
                                     </div>
                                 </div>
                                 <div class="form-group">
@@ -120,7 +123,7 @@
                             </form>
                         </div>
                         <div class="col-md-5">
-                            {{ redis_value }}
+                            <p style="word-wrap:break-word; white-space:normal; word-break:break-all;bridth:500px;">{{ redis_value }}</p>
                         </div>
                     </div>
                 </div>
@@ -150,16 +153,26 @@
                                     </div>
                                 </div>
                                 <div class="form-group">
+                                    <label for="redis_count" class="col-sm-2 control-label">Count</label>
+                                    <div class="col-sm-9">
+                                        <input type="number" class="form-control" id="redis_count" ng-model="redis_count"
+                                               readonly/>
+                                    </div>
+                                </div>
+                                <div class="form-group">
                                     <div class="col-sm-offset-2 col-sm-9">
-                                        <button type="submit" class="btn btn-primary" ng-click="search_value()">Get
-                                            Value
+                                        <button type="submit" class="btn btn-primary" ng-click="set_srandmember();">SRANDMEMBER
+                                        </button>
+                                        <button type="submit" class="btn btn-primary" ng-click="set_scard();">SCARD
+                                        </button>
+                                        <button type="submit" class="btn btn-danger" ng-click="set_smembers();">SMEMBERS
                                         </button>
                                     </div>
                                 </div>
                             </form>
                         </div>
                         <div class="col-md-5">
-                            {{ redis_value }}
+                            <p style="word-wrap:break-word; white-space:normal; word-break:break-all;bridth:500px;">{{ redis_value }}</p>
                         </div>
                     </div>
                 </div>

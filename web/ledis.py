@@ -79,3 +79,14 @@ class RedisClient(object):
         client = self.redis_client[group_id]
         return client.zrange(search_key, start, stop)
 
+    def get_set_scard(self, group_id, search_key):
+        client = self.redis_client[group_id]
+        return client.scard(search_key)
+
+    def get_set_srandmember(self, group_id, search_key, count):
+        client = self.redis_client[group_id]
+        return client.srandmember(search_key, count)
+
+    def get_set_smembers(self, group_id, search_key):
+        client = self.redis_client[group_id]
+        return client.smembers(search_key)

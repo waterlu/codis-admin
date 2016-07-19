@@ -126,6 +126,45 @@ def zset_zrange(addr, key, start, stop):
         return jsonify({'value': "", 'errorCode': 99, 'errorMsg': e})
 
 
+@app.route('/api/set/scard/<addr>/<key>')
+def set_scard(addr, key):
+    try:
+        group_id = codis_info.find_group_id(addr)
+        value = redis_client.get_set_scard(group_id, key)
+        return jsonify({'value': value, 'errorCode': 0})
+    except Exception as e:
+        print e
+        return jsonify({'value': "", 'errorCode': 99, 'errorMsg': e})
+
+
+@app.route('/api/set/srandmember/<addr>/<key>/<count>')
+def set_srandmember(addr, key, count):
+    try:
+        group_id = codis_info.find_group_id(addr)
+        data = redis_client.get_set_srandmember(group_id, key, count)
+        list = []
+        for value in data:
+            list.append(unicode(value , errors='ignore'))
+        return jsonify({'value': list, 'errorCode': 0})
+    except Exception as e:
+        print e
+        return jsonify({'value': "", 'errorCode': 99, 'errorMsg': e})
+
+
+@app.route('/api/set/smembers/<addr>/<key>')
+def set_smembers(addr, key):
+    try:
+        group_id = codis_info.find_group_id(addr)
+        data = redis_client.get_set_smembers(group_id, key)
+        list = []
+        for value in data:
+            list.append(unicode(value , errors='ignore'))
+        return jsonify({'value': list, 'errorCode': 0})
+    except Exception as e:
+        print e
+        return jsonify({'value': "", 'errorCode': 99, 'errorMsg': e})
+
+
 def init_codis_info():
     if codis_info.has_init():
         return
