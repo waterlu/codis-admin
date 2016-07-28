@@ -1,34 +1,33 @@
 from flask import Flask, render_template, jsonify, request, abort
 from model import CodisInfo
 from ledis import RedisClient
-from kazoo.client import KazooClient
 import json
 
 app = Flask(__name__)
 
 zk_addr = "60.205.59.69:2181"
 product_name = "test"
-use_proxy_ip = False
+use_proxy_ip = True
 max_count = 50
 
-redis_client = RedisClient(use_proxy_ip)
-codis_info = CodisInfo()
+redis_client = RedisClient(use_proxy_ip, max_count)
+codis_info = CodisInfo(zk_addr, product_name, redis_client)
 
 
 @app.route('/')
 def index():
-    init_codis_info()
+    codis_info.init_codis_info()
     return render_template('index.html')
 
 
 @app.route('/api/setting', methods=['GET'])
 def get_setting():
-    setting = {}
-    setting['zk_addr'] = zk_addr
-    setting['product_name'] = product_name
-    setting['max_count'] = max_count
-    setting['use_proxy_ip'] = use_proxy_ip
-    return jsonify({'data': setting, 'errorCode': 0})
+    data = {}
+    data['zk_addr'] = codis_info.get_zk_addr()
+    data['product_name'] = codis_info.get_product_name()
+    data['max_count'] = redis_client.get_max_count()
+    data['use_proxy_ip'] = redis_client.get_use_proxy_ip()
+    return jsonify({'data': data, 'errorCode': 0})
 
 
 @app.route('/api/status', methods=['GET'])
@@ -52,9 +51,9 @@ def change_setting():
     product_name = request.json['product_name']
     max_count = request.json['max_count']
     use_proxy_ip = request.json['use_proxy_ip']
-    codis_info.reset()
-    redis_client.reset(use_proxy_ip)
-    init_codis_info()
+    redis_client.reset(use_proxy_ip, max_count)
+    codis_info.reset(zk_addr, product_name, redis_client)
+    codis_info.init_codis_info()
 
     data = {}
     server_list = []
@@ -65,10 +64,10 @@ def change_setting():
         server['group_id'] = group_id
         server['redis_server'] = redis_info[group_id]
         server_list.append(server)
-    data['zk_addr'] = zk_addr
-    data['product_name'] = product_name
-    data['max_count'] = max_count
-    data['use_proxy_ip'] = use_proxy_ip
+    data['zk_addr'] = codis_info.get_zk_addr()
+    data['product_name'] = codis_info.get_product_name()
+    data['max_count'] = redis_client.get_max_count()
+    data['use_proxy_ip'] = redis_client.get_use_proxy_ip()
     data['servers'] = server_list
     return jsonify({'data': data, 'errorCode': 0})
 
@@ -142,7 +141,7 @@ def type(addr, key):
         return jsonify({'type': type, 'errorCode': 0})
     except Exception as e:
         print e
-        return jsonify({'data': "", 'errorCode': 99, 'errorMsg': e})
+        return jsonify({'data': "", 'errorCode': 99, 'errorMsg': e.message})
 
 
 @app.route('/api/string/get/<addr>/<key>')
@@ -224,42 +223,42 @@ def set_smembers(addr, key):
         return jsonify({'value': "", 'errorCode': 99, 'errorMsg': e})
 
 
-def init_codis_info():
-    if codis_info.has_init():
-        return
-
-    try:
-        # start zookeeper client
-        zk_client = KazooClient(hosts=zk_addr)
-        zk_client.start()
-
-        # get codis server information
-        zk_servers_dir = "/zk/codis/db_%s/servers" % product_name
-        for zk_server in zk_client.get_children(zk_servers_dir):
-            zk_server_path = '/'.join((zk_servers_dir, zk_server))
-            for server in zk_client.get_children(zk_server_path):
-                server_path = '/'.join((zk_server_path, server))
-                data, stat = zk_client.get(server_path)
-                server_info = json.loads(data)
-                group_id = server_info.get('group_id')
-                server_type = server_info.get('type')
-                server_addr = server_info.get('addr')
-                codis_info.add_codis_server(group_id, server_type, server_addr)
-
-        # get codis proxy information
-        zk_proxy_dir = "/zk/codis/db_%s/proxy" % product_name
-        for zk_proxy in zk_client.get_children(zk_proxy_dir):
-            zk_proxy_path = '/'.join((zk_proxy_dir, zk_proxy))
-            data, stat = zk_client.get(zk_proxy_path)
-            proxy_info = json.loads(data)
-            codis_info.add_proxy(proxy_info['id'], proxy_info['addr'], proxy_info['debug_var_addr'], proxy_info['state'])
-
-        redis_client.init_connection(codis_info.get_group_info(), codis_info.get_proxy_info())
-        codis_info.init_done()
-        return None
-    except Exception as e:
-        print e
-        return e
+# def init_codis_info():
+#     if codis_info.has_init():
+#         return
+#
+#     try:
+#         # start zookeeper client
+#         zk_client = KazooClient(hosts=zk_addr)
+#         zk_client.start()
+#
+#         # get codis server information
+#         zk_servers_dir = "/zk/codis/db_%s/servers" % product_name
+#         for zk_server in zk_client.get_children(zk_servers_dir):
+#             zk_server_path = '/'.join((zk_servers_dir, zk_server))
+#             for server in zk_client.get_children(zk_server_path):
+#                 server_path = '/'.join((zk_server_path, server))
+#                 data, stat = zk_client.get(server_path)
+#                 server_info = json.loads(data)
+#                 group_id = server_info.get('group_id')
+#                 server_type = server_info.get('type')
+#                 server_addr = server_info.get('addr')
+#                 codis_info.add_codis_server(group_id, server_type, server_addr)
+#
+#         # get codis proxy information
+#         zk_proxy_dir = "/zk/codis/db_%s/proxy" % product_name
+#         for zk_proxy in zk_client.get_children(zk_proxy_dir):
+#             zk_proxy_path = '/'.join((zk_proxy_dir, zk_proxy))
+#             data, stat = zk_client.get(zk_proxy_path)
+#             proxy_info = json.loads(data)
+#             codis_info.add_proxy(proxy_info['id'], proxy_info['addr'], proxy_info['debug_var_addr'], proxy_info['state'])
+#
+#         redis_client.init_connection(codis_info.get_group_info(), codis_info.get_proxy_info())
+#         codis_info.init_done()
+#         return None
+#     except Exception as e:
+#         print e
+#         return e
 
 
 if __name__ == '__main__':

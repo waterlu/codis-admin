@@ -1,3 +1,6 @@
+from kazoo.client import KazooClient
+import json
+
 class User(object):
     def __init__(self, user_id, user_name):
         self.user_id = user_id
@@ -63,10 +66,60 @@ class ProxyInfo(object):
 
 
 class CodisInfo(object):
-    def __init__(self):
+    def __init__(self, zk_addr, product_name, redis_client):
         self.group_info = []
         self.proxy_info = []
+        self.zk_addr = zk_addr
+        self.product_name = product_name
+        self.redis_client = redis_client
         self.init = False
+
+    def reset(self, zk_addr, product_name, redis_client):
+        self.group_info = []
+        self.proxy_info = []
+        self.zk_addr = zk_addr
+        self.product_name = product_name
+        self.redis_client = redis_client
+        self.init = False
+
+    def get_zk_addr(self):
+        return self.zk_addr
+
+    def get_product_name(self):
+        return self.product_name
+
+    def init_codis_info(self):
+        if self.has_init():
+            return
+
+        # start zookeeper client
+        zk_client = KazooClient(hosts=self.zk_addr)
+        zk_client.start()
+
+        # get codis server information
+        zk_servers_dir = "/zk/codis/db_%s/servers" % self.product_name
+        for zk_server in zk_client.get_children(zk_servers_dir):
+            zk_server_path = '/'.join((zk_servers_dir, zk_server))
+            for server in zk_client.get_children(zk_server_path):
+                server_path = '/'.join((zk_server_path, server))
+                data, stat = zk_client.get(server_path)
+                server_info = json.loads(data)
+                group_id = server_info.get('group_id')
+                server_type = server_info.get('type')
+                server_addr = server_info.get('addr')
+                self.add_codis_server(group_id, server_type, server_addr)
+
+        # get codis proxy information
+        zk_proxy_dir = "/zk/codis/db_%s/proxy" % self.product_name
+        for zk_proxy in zk_client.get_children(zk_proxy_dir):
+            zk_proxy_path = '/'.join((zk_proxy_dir, zk_proxy))
+            data, stat = zk_client.get(zk_proxy_path)
+            proxy_info = json.loads(data)
+            self.add_proxy(proxy_info['id'], proxy_info['addr'], proxy_info['debug_var_addr'], proxy_info['state'])
+
+        self.redis_client.init_connection(self.get_group_info(), self.get_proxy_info())
+        self.init_done()
+        return None
 
     def add_codis_server(self, group_id, server_type, server_addr):
         group_info = None
@@ -97,14 +150,10 @@ class CodisInfo(object):
     def init_done(self):
         self.init = True
 
-    def reset(self):
-        self.group_info = []
-        self.proxy_info = []
-        self.init = False
-
     def find_group_id(self, addr):
-        for group_info in self.group_info:
-            group_id = group_info.find_group_id(addr)
-            if group_id > 0:
-                return group_id
-        return -1
+        return self.redis_client.find_group_id(addr)
+        # for group_info in self.group_info:
+        #     group_id = group_info.find_group_id(addr)
+        #     if group_id > 0:
+        #         return group_id
+        # return -1

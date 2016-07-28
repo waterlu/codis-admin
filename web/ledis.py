@@ -2,17 +2,31 @@ import redis
 
 
 class RedisClient(object):
-    def __init__(self, use_proxy_ip):
+    def __init__(self, use_proxy_ip, max_count):
         self.redis_client = {}
         self.redis_info = {}
         self.proxy_ip = {}
         self.use_proxy_ip = use_proxy_ip
+        self.max_count = max_count
 
-    def reset(self, use_proxy_ip):
+    def reset(self, use_proxy_ip, max_count):
         self.redis_client = {}
         self.redis_info = {}
         self.proxy_ip = {}
         self.use_proxy_ip = use_proxy_ip
+        self.max_count = max_count
+
+    def get_max_count(self):
+        return self.max_count
+
+    def get_use_proxy_ip(self):
+        return self.use_proxy_ip
+
+    def find_group_id(self, addr):
+        for (group_id, client) in self.redis_info.items():
+            if (client == addr):
+                return group_id
+        return -1
 
     def init_connection(self, group_info, proxy_info):
         """
@@ -70,11 +84,10 @@ class RedisClient(object):
             pattern = '%s%s%s' % (pattern, key, '*')
         return pattern
 
-    def get_key(self, search_key, max_count):
+    def get_key(self, search_key, count):
         """
 
         :param search_key: the key to query (fuzzy searching)
-        :param max_count: the max count of the query results
         :return: all the keys match the query condition
         """
         key_list = []
@@ -87,7 +100,7 @@ class RedisClient(object):
                 redis_key['key'] = key_str
                 redis_key['group'] = key
                 key_list.append(redis_key)
-                if len(key_list) >= max_count:
+                if len(key_list) >= count:
                     return key_list
         return key_list
 

@@ -72,6 +72,10 @@ angular.module('app').controller('SettingController', ['$scope', '$http', '$stat
             $scope.product_name = data.product_name;
             $scope.max_count = data.max_count;
             $scope.use_proxy_ip = data.use_proxy_ip;
+            $scope.zk_addr_bak = $scope.zk_addr;
+            $scope.product_name_bak = $scope.product_name;
+            $scope.max_count_bak = $scope.max_count;
+            $scope.use_proxy_ip_bak = $scope.use_proxy_ip;
             $scope.servers = data.servers;
         }).error(function(data){
             console.log('error:' + data);
