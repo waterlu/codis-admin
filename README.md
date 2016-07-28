@@ -1,11 +1,11 @@
 # codis-admin
-Tutorial
-1.Requirements
+
+Installation
 $ pip install Flask
 $ pip install redis
 $ pip install kazoo
 
-2. Run
+Run
 $ python web.py
 
 Developer's Guide
