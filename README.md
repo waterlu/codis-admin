@@ -1,6 +1,7 @@
 # codis-admin
 
 Installation
+
 $ pip install Flask
 
 $ pip install redis
@@ -9,6 +10,7 @@ $ pip install kazoo
 
 
 Run
+
 $ python web.py
 
 Developer's Guide
