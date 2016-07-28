@@ -97,6 +97,11 @@ class CodisInfo(object):
     def init_done(self):
         self.init = True
 
+    def reset(self):
+        self.group_info = []
+        self.proxy_info = []
+        self.init = False
+
     def find_group_id(self, addr):
         for group_info in self.group_info:
             group_id = group_info.find_group_id(addr)

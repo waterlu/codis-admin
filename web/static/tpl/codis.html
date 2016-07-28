@@ -31,28 +31,21 @@
                 <span class="glyphicon glyphicon-refresh"></span>
             </button>
         </h4>
-        <div class="panel panel-primary" ng-repeat="group in groups">
-            <div class="panel-heading">
-                <b>Group_{{group.id}}</b>
-            </div>
-            <div class="panel-body">
-                <table class="table table-striped">
-                    <thead>
-                        <tr>
-                            <th>Group</th>
-                            <th>Type</th>
-                            <th>Address</th>
-                        </tr>
-                    </thead>
-                    <tbody>
-                        <tr ng-repeat="server in group.servers">
-                            <td><p>{{server.id}}</p></td>
-                            <td><p>{{server.type}}</p></td>
-                            <td><p>{{server.addr}}</p></td>
-                        </tr>
-                    </tbody>
-                </table>
-            </div>
-        </div>
+        <table class="table table-striped" ng-repeat="group in groups">
+            <thead>
+                <tr>
+                    <th>Group</th>
+                    <th>Type</th>
+                    <th>Address</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr ng-repeat="server in group.servers">
+                    <td><p>{{server.id}}</p></td>
+                    <td><p>{{server.type}}</p></td>
+                    <td><p>{{server.addr}}</p></td>
+                </tr>
+            </tbody>
+        </table>
     </div>
 </div>

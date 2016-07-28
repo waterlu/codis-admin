@@ -1,4 +1,4 @@
-from flask import Flask, render_template, jsonify
+from flask import Flask, render_template, jsonify, request, abort
 from model import CodisInfo
 from ledis import RedisClient
 from kazoo.client import KazooClient
@@ -8,17 +8,69 @@ app = Flask(__name__)
 
 zk_addr = "60.205.59.69:2181"
 product_name = "test"
-use_proxy_ip = True
-search_max_count = 50
+use_proxy_ip = False
+max_count = 50
 
-codis_info = CodisInfo()
 redis_client = RedisClient(use_proxy_ip)
+codis_info = CodisInfo()
 
 
 @app.route('/')
 def index():
     init_codis_info()
     return render_template('index.html')
+
+
+@app.route('/api/setting', methods=['GET'])
+def get_setting():
+    setting = {}
+    setting['zk_addr'] = zk_addr
+    setting['product_name'] = product_name
+    setting['max_count'] = max_count
+    setting['use_proxy_ip'] = use_proxy_ip
+    return jsonify({'data': setting, 'errorCode': 0})
+
+
+@app.route('/api/status', methods=['GET'])
+def get_status():
+    server_list = []
+    client_info = redis_client.get_redis_client()
+    redis_info = redis_client.get_redis_info()
+    for (group_id, client) in client_info.items():
+        server = {}
+        server['group_id'] = group_id
+        server['redis_server'] = redis_info[group_id]
+        server_list.append(server)
+    return jsonify({'data': server_list, 'errorCode': 0})
+
+
+@app.route('/api/setting', methods=['POST'])
+def change_setting():
+    if not request.json:
+        abort(400)
+    zk_addr = request.json['zk_addr']
+    product_name = request.json['product_name']
+    max_count = request.json['max_count']
+    use_proxy_ip = request.json['use_proxy_ip']
+    codis_info.reset()
+    redis_client.reset(use_proxy_ip)
+    init_codis_info()
+
+    data = {}
+    server_list = []
+    client_info = redis_client.get_redis_client()
+    redis_info = redis_client.get_redis_info()
+    for (group_id, client) in client_info.items():
+        server = {}
+        server['group_id'] = group_id
+        server['redis_server'] = redis_info[group_id]
+        server_list.append(server)
+    data['zk_addr'] = zk_addr
+    data['product_name'] = product_name
+    data['max_count'] = max_count
+    data['use_proxy_ip'] = use_proxy_ip
+    data['servers'] = server_list
+    return jsonify({'data': data, 'errorCode': 0})
 
 
 @app.route('/api/proxy')
@@ -62,36 +114,42 @@ def slaves():
 
 @app.route('/api/search/<key>')
 def search(key):
-    key_list = []
-    count = 0
-    if len(key) < 5:
-        return jsonify({'data': key_list, 'count': count, 'errorCode': 1,
-                        'errorMsg': 'The key must contain at least 5 characters'})
-
-    if key.find("*") >= 0:
-        return jsonify({'data': key_list, 'count': count, 'errorCode': 2,
-                        'errorMsg': 'The key must not contain *'})
-
-    key_list = redis_client.get_key(key)
-    count = len(key_list)
-    if count > search_max_count:
-        return jsonify({'data': key_list[0:search_max_count], 'count': count, 'errorCode': 0})
-    else:
-        return jsonify({'data': key_list, 'count': count, 'errorCode': 0})
+    try:
+        key_list = []
+        count = 0
+        if len(key) < 5:
+            return jsonify({'data': key_list, 'count': count, 'errorCode': 1,
+                            'errorMsg': 'The key must contain at least 5 characters'})
+        if key.find("*") >= 0:
+            return jsonify({'data': key_list, 'count': count, 'errorCode': 2,
+                            'errorMsg': 'The key must not contain *'})
+        key_list = redis_client.get_key(key, max_count)
+        count = len(key_list)
+        if count > max_count:
+            return jsonify({'data': key_list[0:max_count], 'count': count, 'errorCode': 0})
+        else:
+            return jsonify({'data': key_list, 'count': count, 'errorCode': 0})
+    except Exception as e:
+        print 'exception in search:' + e.message
+        return jsonify({'data': [], 'count':0, 'errorCode': 99, 'errorMsg': e.message})
 
 
 @app.route('/api/type/<addr>/<key>')
 def type(addr, key):
-    group_id = codis_info.find_group_id(addr)
-    type = redis_client.get_key_type(group_id, key)
-    return jsonify({'type': type, 'errorCode': 0})
+    try:
+        group_id = codis_info.find_group_id(addr)
+        type = redis_client.get_key_type(group_id, key)
+        return jsonify({'type': type, 'errorCode': 0})
+    except Exception as e:
+        print e
+        return jsonify({'data': "", 'errorCode': 99, 'errorMsg': e})
 
 
 @app.route('/api/string/get/<addr>/<key>')
 def string_get(addr, key):
     try:
         group_id = codis_info.find_group_id(addr)
-        value = redis_client.get_string_value(group_id, key)
+        value = redis_client.string_get(group_id, key)
         value = unicode(value, errors='ignore')
         return jsonify({'value': value, 'errorCode': 0})
     except Exception as e:
@@ -103,7 +161,7 @@ def string_get(addr, key):
 def zset_zcard(addr, key):
     try:
         group_id = codis_info.find_group_id(addr)
-        value = redis_client.get_zset_zcard(group_id, key)
+        value = redis_client.zset_zcard(group_id, key)
         return jsonify({'value': value, 'errorCode': 0})
     except Exception as e:
         print e
@@ -114,7 +172,7 @@ def zset_zcard(addr, key):
 def zset_zrange(addr, key, start, stop):
     try:
         group_id = codis_info.find_group_id(addr)
-        data = redis_client.get_zset_zrange(group_id, key, start, stop)
+        data = redis_client.zset_zrange(group_id, key, start, stop)
         list = []
         for value in data:
             list.append(unicode(value , errors='ignore'))
@@ -131,7 +189,7 @@ def zset_zrange(addr, key, start, stop):
 def set_scard(addr, key):
     try:
         group_id = codis_info.find_group_id(addr)
-        value = redis_client.get_set_scard(group_id, key)
+        value = redis_client.set_scard(group_id, key)
         return jsonify({'value': value, 'errorCode': 0})
     except Exception as e:
         print e
@@ -142,7 +200,7 @@ def set_scard(addr, key):
 def set_srandmember(addr, key, count):
     try:
         group_id = codis_info.find_group_id(addr)
-        data = redis_client.get_set_srandmember(group_id, key, count)
+        data = redis_client.set_srandmember(group_id, key, count)
         list = []
         for value in data:
             list.append(unicode(value, errors='ignore'))
@@ -156,7 +214,7 @@ def set_srandmember(addr, key, count):
 def set_smembers(addr, key):
     try:
         group_id = codis_info.find_group_id(addr)
-        data = redis_client.get_set_smembers(group_id, key)
+        data = redis_client.set_smembers(group_id, key)
         list = []
         for value in data:
             list.append(unicode(value, errors='ignore'))
@@ -198,8 +256,10 @@ def init_codis_info():
 
         redis_client.init_connection(codis_info.get_group_info(), codis_info.get_proxy_info())
         codis_info.init_done()
+        return None
     except Exception as e:
         print e
+        return e
 
 
 if __name__ == '__main__':

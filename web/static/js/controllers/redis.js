@@ -29,14 +29,16 @@ angular.module('app').controller('RedisController', ['$scope', '$http', '$state'
     $scope.search = function (key) {
         $http.get('/api/search/' + key).success(function (data) {
             $scope.resetRowStatus();
-            $scope.search_result_count = data.count;
-            $scope.search_result_keys = data.data;
             var errorCode = data.errorCode
+            console.log('errorCode=' + errorCode);
             if (errorCode > 0) {
                 var errorMessage = data.errorMsg;
+                console.log('errorMessage=' + errorMessage);
                 toaster.pop('error', "", errorMessage);
                 return;
             }
+            $scope.search_result_count = data.count;
+            $scope.search_result_keys = data.data;
             console.log('$scope.search_result_keys=' + $scope.search_result_keys);
             console.log('$scope.search_result_count=' + $scope.search_result_count);
             if ($scope.search_result_keys.length == 0) {

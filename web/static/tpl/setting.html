@@ -1,1 +1,63 @@
-<h3>To be implemented soon.</h3>
+<div class="row">
+    <form class="form-horizontal">
+        <div class="form-group">
+            <label for="zk_addr" class="col-sm-2 control-label">Zookeeper Address</label>
+            <div class="col-sm-6">
+                <input type="text" class="form-control" id="zk_addr" ng-model="zk_addr"
+                       ng-readonly="readonly"/>
+            </div>
+            <div class="col-sm-4">The zookeeper cluster used for Codis.</div>
+        </div>
+        <div class="form-group">
+            <label for="product_name" class="col-sm-2 control-label">Product Name</label>
+            <div class="col-sm-6">
+                <input type="text" class="form-control" id="product_name" ng-model="product_name"
+                       ng-readonly="readonly"/>
+            </div>
+            <div class="col-sm-4">/zk/codis/db_{{ product_name }}/proxy</div>
+        </div>
+        <div class="form-group">
+            <label for="max_count" class="col-sm-2 control-label">Max Result Count</label>
+            <div class="col-sm-6">
+                <input type="text" class="form-control" id="max_count" ng-model="max_count"
+                       ng-readonly="readonly"/>
+            </div>
+            <div class="col-sm-4">Avoid showing too many data for one query.</div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-6 col-sm-offset-2 checkbox">
+                <label>
+                    <input type="checkbox" ng-true-value="true" ng-false-value="false" ng-model="use_proxy_ip"
+                           ng-disabled="readonly" />
+                        Replace the IP address of redis server with codis proxy
+                </label>
+            </div>
+        </div>
+        <div class="form-group">
+            <div class="col-sm-offset-2 col-sm-9">
+                <button type="submit" class="btn btn-primary" ng-click="editSetting();" ng-if="readonly">Edit</button>
+                <button type="submit" class="btn btn-success" ng-click="saveSetting();" ng-if="!readonly">Save</button>
+                <button type="submit" class="btn btn-success" ng-click="cancelSetting();" ng-if="!readonly">Cancel</button>
+            </div>
+        </div>
+    </form>
+</div>
+<h4>Connected Redis Server
+    <button ng-click="refreshStatus()" class="btn btn-default btn-sm">
+        <span class="glyphicon glyphicon-refresh"></span>
+    </button>
+</h4>
+<table class="table table-striped">
+    <thead>
+        <tr>
+            <th>Group</th>
+            <th>Address</th>
+        </tr>
+    </thead>
+    <tbody>
+        <tr ng-repeat="server in servers">
+            <td><p>{{server.group_id}}</p></td>
+            <td><p>{{server.redis_server}}</p></td>
+        </tr>
+    </tbody>
+</table>
